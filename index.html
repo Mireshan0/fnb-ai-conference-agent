@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FNB AI Conference Agent</title>
+<style>
+  :root {
+    --green: #006341;
+    --green-dark: #004D32;
+    --green-light: #E8F5E9;
+    --green-mid: #A7D7C5;
+    --amber: #F59E0B;
+    --white: #FFFFFF;
+    --near-white: #F7FAF8;
+    --slate: #4A5568;
+    --dark: #1A1A2E;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--near-white);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── HEADER ── */
+  header {
+    width: 100%;
+    background: var(--green-dark);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 58px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-mark {
+    width: 36px;
+    height: 36px;
+    background: var(--green);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -1px;
+    flex-shrink: 0;
+  }
+
+  .header-title {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header-title span:first-child {
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    line-height: 1.2;
+  }
+
+  .header-title span:last-child {
+    font-size: 10px;
+    color: var(--green-mid);
+    letter-spacing: 0.5px;
+  }
+
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--green-mid);
+    font-weight: 600;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    background: #4ADE80;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ── CHAT CONTAINER ── */
+  .chat-wrapper {
+    width: 100%;
+    max-width: 720px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 16px 16px;
+  }
+
+  /* ── WELCOME CARD ── */
+  .welcome-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 24px;
+    margin: 20px 0 16px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--green);
+  }
+
+  .welcome-eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .welcome-card h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .welcome-card p {
+    font-size: 13.5px;
+    color: var(--slate);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .suggestion-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  @media (max-width: 480px) {
+    .suggestion-grid { grid-template-columns: 1fr; }
+  }
+
+  .suggestion-chip {
+    background: var(--green-light);
+    border: 1px solid #C8E6C9;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--green-dark);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .suggestion-chip:hover {
+    background: #C8E6C9;
+    border-color: var(--green);
+    transform: translateY(-1px);
+  }
+
+  /* ── MESSAGES ── */
+  .messages {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .msg {
+    display: flex;
+    gap: 10px;
+    animation: fadeIn 0.25s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.user {
+    flex-direction: row-reverse;
+  }
+
+  .msg-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  .msg.assistant .msg-avatar {
+    background: var(--green);
+    color: white;
+    font-size: 16px;
+  }
+
+  .msg.user .msg-avatar {
+    background: var(--dark);
+    color: white;
+    font-size: 12px;
+  }
+
+  .msg-body {
+    flex: 1;
+    max-width: calc(100% - 48px);
+  }
+
+  .msg-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    color: var(--slate);
+  }
+
+  .msg.user .msg-label { text-align: right; }
+
+  .msg-bubble {
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .msg.assistant .msg-bubble {
+    background: white;
+    color: var(--dark);
+    box-shadow: var(--shadow);
+    border-radius: 2px var(--radius) var(--radius) var(--radius);
+  }
+
+  .msg.user .msg-bubble {
+    background: var(--green-dark);
+    color: white;
+    border-radius: var(--radius) 2px var(--radius) var(--radius);
+  }
+
+  .msg-bubble p { margin-bottom: 10px; }
+  .msg-bubble p:last-child { margin-bottom: 0; }
+  .msg-bubble ul, .msg-bubble ol { padding-left: 20px; margin-bottom: 10px; }
+  .msg-bubble li { margin-bottom: 4px; }
+  .msg-bubble strong { color: var(--green-dark); font-weight: 700; }
+  .msg.user .msg-bubble strong { color: var(--green-mid); }
+  .msg-bubble h3 { font-size: 14px; font-weight: 700; color: var(--green); margin: 12px 0 6px; }
+  .msg-bubble h3:first-child { margin-top: 0; }
+
+  /* ── TYPING INDICATOR ── */
+  .typing-indicator {
+    display: none;
+    gap: 10px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .typing-indicator.active { display: flex; }
+
+  .typing-dots {
+    background: white;
+    border-radius: 2px var(--radius) var(--radius) var(--radius);
+    padding: 12px 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    opacity: 0.3;
+    animation: dotPulse 1.4s infinite;
+  }
+
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes dotPulse {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(1); }
+    40% { opacity: 1; transform: scale(1.2); }
+  }
+
+  /* ── INPUT AREA ── */
+  .input-area {
+    position: sticky;
+    bottom: 0;
+    background: var(--near-white);
+    padding: 12px 0 0;
+    margin-top: 16px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 10px;
+    background: white;
+    border-radius: var(--radius);
+    padding: 10px 10px 10px 16px;
+    box-shadow: var(--shadow);
+    border: 1.5px solid #E2E8F0;
+    transition: border-color 0.15s;
+  }
+
+  .input-row:focus-within {
+    border-color: var(--green);
+  }
+
+  #userInput {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--dark);
+    background: transparent;
+    resize: none;
+    max-height: 120px;
+    line-height: 1.5;
+  }
+
+  #userInput::placeholder { color: #A0AEC0; }
+
+  #sendBtn {
+    width: 38px;
+    height: 38px;
+    background: var(--green);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, transform 0.1s;
+    flex-shrink: 0;
+    align-self: flex-end;
+  }
+
+  #sendBtn:hover { background: var(--green-dark); }
+  #sendBtn:active { transform: scale(0.95); }
+  #sendBtn:disabled { background: #A0AEC0; cursor: not-allowed; }
+
+  #sendBtn svg { width: 18px; height: 18px; fill: white; }
+
+  .input-footer {
+    font-size: 10px;
+    color: #A0AEC0;
+    text-align: center;
+    padding: 6px 0 2px;
+  }
+
+  /* ── TOPIC TAGS ── */
+  .topic-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .tag {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1.5px solid;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .tag.green { border-color: var(--green); color: var(--green); background: transparent; }
+  .tag.green:hover { background: var(--green); color: white; }
+  .tag.amber { border-color: var(--amber); color: #92400E; background: transparent; }
+  .tag.amber:hover { background: var(--amber); color: white; }
+  .tag.dark { border-color: var(--dark); color: var(--dark); background: transparent; }
+  .tag.dark:hover { background: var(--dark); color: white; }
+
+  /* ── DISCLAIMER ── */
+  .disclaimer {
+    background: #FFF8E1;
+    border: 1px solid #FDE68A;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 11.5px;
+    color: #78350F;
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+
+  .disclaimer strong { color: #92400E; }
+
+  /* ── KEY MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-box {
+    background: white;
+    border-radius: 16px;
+    padding: 28px 24px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  }
+
+  .modal-box h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 6px;
+  }
+
+  .modal-box p {
+    font-size: 13px;
+    color: var(--slate);
+    line-height: 1.55;
+    margin-bottom: 16px;
+  }
+
+  .modal-box a { color: var(--green); }
+
+  .modal-input {
+    width: 100%;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-family: monospace;
+    outline: none;
+    margin-bottom: 8px;
+    transition: border-color 0.15s;
+  }
+
+  .modal-input:focus { border-color: var(--green); }
+
+  .modal-error {
+    font-size: 12px;
+    color: #DC2626;
+    min-height: 18px;
+    margin-bottom: 12px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  .btn-primary {
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn-primary:hover { background: var(--green-dark); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--slate);
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  #voiceStatus {
+    font-size: 11px;
+    color: var(--slate);
+    cursor: pointer;
+    text-decoration: underline dotted;
+  }
+
+  #voiceStatus:hover { color: var(--green); }
+  .error-bubble {
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #991B1B;
+  }
+
+  /* ── VOICE CONTROLS ── */
+  #micBtn {
+    width: 38px;
+    height: 38px;
+    background: transparent;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    align-self: flex-end;
+    color: var(--slate);
+    font-size: 17px;
+  }
+
+  #micBtn:hover { border-color: var(--green); color: var(--green); background: var(--green-light); }
+  #micBtn.listening {
+    background: #FEE2E2;
+    border-color: #EF4444;
+    color: #EF4444;
+    animation: micPulse 1s infinite;
+  }
+
+  @keyframes micPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.3); }
+    50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+  }
+
+  .voice-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--green-light);
+    border-radius: 8px;
+    border: 1px solid #C8E6C9;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: var(--green-dark);
+    font-weight: 600;
+    display: none;
+  }
+
+  .voice-bar.active { display: flex; }
+
+  .waveform {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 18px;
+  }
+
+  .wave-bar {
+    width: 3px;
+    border-radius: 2px;
+    background: var(--green);
+  }
+
+  .wave-bar.speaking {
+    animation: wave 0.8s ease-in-out infinite;
+  }
+
+  .wave-bar:nth-child(1) { animation-delay: 0s; height: 6px; }
+  .wave-bar:nth-child(2) { animation-delay: 0.1s; height: 10px; }
+  .wave-bar:nth-child(3) { animation-delay: 0.2s; height: 16px; }
+  .wave-bar:nth-child(4) { animation-delay: 0.3s; height: 10px; }
+  .wave-bar:nth-child(5) { animation-delay: 0.4s; height: 6px; }
+
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.4); }
+    50% { transform: scaleY(1); }
+  }
+
+  .voice-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--slate);
+    cursor: pointer;
+    user-select: none;
+    padding: 4px 0;
+  }
+
+  .voice-toggle input[type=checkbox] { accent-color: var(--green); width: 14px; height: 14px; cursor: pointer; }
+
+  #stopSpeakBtn {
+    background: none;
+    border: none;
+    font-size: 13px;
+    cursor: pointer;
+    color: #EF4444;
+    padding: 0 4px;
+    display: none;
+  }
+
+  #stopSpeakBtn.visible { display: inline; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo-mark">FNB</div>
+    <div class="header-title">
+      <span>AI Conference Agent</span>
+      <span>FNB AI &amp; Innovation · 2025</span>
+    </div>
+  </div>
+  <div class="status-pill">
+    <div class="status-dot"></div>
+    Live
+  </div>
+</header>
+
+<div class="chat-wrapper">
+
+  <div class="welcome-card" id="welcomeCard">
+    <div class="welcome-eyebrow">FNB AI Conference · Interactive Q&amp;A</div>
+    <h2>Ask anything about AI at FNB</h2>
+    <p>This agent is grounded in FNB's AI strategy, approved tools, use cases, and governance framework. Ask about Copilot, Copilot Studio, Kiro, the BRS Generator, guardrails, or how to get started in your market.</p>
+
+    <div class="topic-tags">
+      <span class="tag green" onclick="quickAsk('What is FNBs AI strategy?')">Strategy</span>
+      <span class="tag green" onclick="quickAsk('What AI tools are approved at FNB?')">Tools</span>
+      <span class="tag dark" onclick="quickAsk('What guardrails does FNB have in place for AI?')">Guardrails</span>
+      <span class="tag amber" onclick="quickAsk('What are the risks of using AI at FNB?')">Risks</span>
+      <span class="tag green" onclick="quickAsk('Tell me about the BRS Generator use case')">BRS Generator</span>
+      <span class="tag dark" onclick="quickAsk('How can my country get started with AI tools?')">Get started</span>
+    </div>
+
+    <div class="suggestion-grid">
+      <div class="suggestion-chip" onclick="quickAsk('What is the difference between Copilot and Copilot Studio?')">
+        💡 Copilot vs Copilot Studio — what's the difference?
+      </div>
+      <div class="suggestion-chip" onclick="quickAsk('How does Kiro fit into FNBs AI approach and what are the SDLC rules?')">
+        🔧 How does Kiro fit in, and what are the SDLC rules?
+      </div>
+      <div class="suggestion-chip" onclick="quickAsk('What AI tools are live in production at FNB right now?')">
+        ✅ What AI tools are live in production right now?
+      </div>
+      <div class="suggestion-chip" onclick="quickAsk('How does AI at FNB protect client data and stay compliant?')">
+        🛡️ How does FNB protect client data when using AI?
+      </div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <strong>Note:</strong> This agent provides general information about FNB's AI strategy and conference topics. For sensitive, confidential, or market-specific matters, please speak directly with the FNB AI &amp; Innovation team.
+  </div>
+
+  <div class="messages" id="messages"></div>
+
+  <div class="typing-indicator" id="typingIndicator">
+    <div class="msg-avatar" style="background:var(--green);color:white;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:2px;">🤖</div>
+    <div class="typing-dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+
+  <div class="input-area">
+
+    <!-- Voice status bar -->
+    <div class="voice-bar" id="voiceBar">
+      <div class="waveform" id="waveform">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+      <span id="voiceBarLabel">Listening…</span>
+      <button id="stopSpeakBtn" title="Stop speaking">⏹ Stop</button>
+    </div>
+
+    <div class="input-row">
+      <textarea
+        id="userInput"
+        rows="1"
+        placeholder="Ask about AI tools, strategy, guardrails, use cases…"
+        onkeydown="handleKey(event)"
+        oninput="autoResize(this)"
+      ></textarea>
+      <button id="micBtn" onclick="toggleMic()" title="Speak your question">🎤</button>
+      <button id="sendBtn" onclick="sendMessage()" title="Send">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+    <div class="input-footer" style="display:flex;align-items:center;justify-content:center;gap:14px;">
+      <label class="voice-toggle">
+        <input type="checkbox" id="autoSpeakToggle" checked>
+        Auto-speak
+      </label>
+      <span style="color:#E2E8F0">|</span>
+      <span id="voiceStatus" onclick="showKeyModal()">🔴 ElevenLabs — click to set up</span>
+      <span style="color:#E2E8F0">|</span>
+      <span>Powered by Claude</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SYSTEM_PROMPT = `You are the FNB AI Conference Agent — an expert assistant for the First National Bank (FNB) AI Conference 2025. Your role is to answer questions from an executive and business audience about AI strategy, approved tools, use cases, governance, and how AI is being adopted across FNB's nine African markets.
+
+## FNB AI CONTEXT
+
+### Vision
+FNB's AI strategy is anchored in a clear principle: AI amplifies human judgment — it does not replace it. Across nine African markets, AI is being deployed to make people faster, decisions smarter, and clients better served, while keeping humans firmly accountable for consequential outcomes.
+
+Core framing: "AI gives every team access to a personalised analyst — but the value only scales when it is used within clear business guardrails."
+
+### Approved AI Tools at FNB
+1. **Microsoft Copilot (M365)** — Available now. Embedded in Teams, Outlook, Word, Excel. For all staff with M365 licences. Summarises emails, drafts documents, analyses data.
+2. **Copilot Studio** — Available now. FNB's platform for building custom AI agents and automations. Powers the BRS Generator, CFO Assistant, and more. Requires an additional licence.
+3. **Kiro (AWS)** — In scope for technology teams. AI-powered development environment. Accelerates spec drafting, code generation, and agent prototyping. Production changes still follow full SDLC and change management. Requires a licence.
+
+Tools NOT in scope: Any AI tool not listed above requires a governance assessment and approval before use.
+
+### Key Use Cases
+- **BRS Generator (LIVE)**: 102 Business Analysts across 9 markets. Reduces BRS drafting from 2-3 days to under 30 minutes. Built on Copilot Studio + Power Automate. Presented to EXCO (CDO Kevin Mitchell, Group PMO Head Kugan Pillay). Most impactful AI deployment to date.
+- **CFO AI Assistant (LIVE)**: Deployed in Teams for C-suite. Calendar briefings, email digests, follow-up logging to SharePoint. Built on Copilot Studio + Power Automate.
+- **NDA Tracker / Project Sunray (LIVE)**: Automated NDA reply detection and SharePoint logging via Power Automate + Azure AI Builder.
+- **Credit Factory Agent (PROOF OF CONCEPT)**: Financial statement extraction via Copilot Studio + Azure AI Builder. Validated, moving toward production. Could reduce credit spreading time by 60-70%.
+- **Capacity Optimisation Agent (EXPERIMENTAL)**: Early-stage analysis agents for capacity and resource planning.
+
+### Guardrails & Governance
+- All AI processing occurs within FNB's Microsoft Azure tenant — no client data leaves FNB's secure environment
+- DLP (Data Loss Prevention) policies enforce data boundaries technically, not just as policy
+- Human-in-the-loop design: AI drafts, recommends, surfaces — a named human must review and approve before any consequential action. Accountability never transfers to the AI.
+- SDLC controls remain fully intact: Kiro accelerates local development, but production changes follow full change management, testing, and approval processes
+- Market-configurable governance: AI tools are built centrally but local compliance teams in each market configure parameters to meet local regulatory requirements
+- Audit-ready logs for regulatory submission in every market
+- No client data is used to train AI models without explicit governance approval
+
+### Responsible AI Principles
+- Transparency: Users know when interacting with AI-generated output
+- Fairness: Models reviewed for bias, especially in credit and client-facing applications
+- Accountability: Every AI output has a named human owner responsible for its use
+- Privacy: Client data never used to train AI models without consent
+- Security: All tools deployed within FNB's existing security perimeter
+
+### Nine African Markets
+South Africa, Namibia, Botswana, Zambia, Zimbabwe, Mozambique, Tanzania, Lesotho, eSwatini
+
+### How Countries Can Get Started
+1. Identify a specific use case and business value
+2. Engage the FNB AI & Innovation team for tool fit, governance, and licence assessment
+3. Obtain appropriate licences (Copilot: M365 licence via CIO office; Copilot Studio: additional licence via central procurement; Kiro: AWS licence for tech teams)
+4. Follow the standard governance route: risk assessment, DLP review, compliance sign-off, SDLC alignment
+5. Start small, prove value, measure outcomes, then scale
+
+### AI Technology Context
+You can also answer general AI questions, framing answers with FNB context where relevant:
+- How large language models (LLMs) work
+- What AI agents are and how they differ from basic AI assistants
+- The difference between AI training and AI inference
+- Common AI concepts: prompt engineering, RAG (retrieval augmented generation), fine-tuning
+- General risks of AI: hallucination, bias, data leakage, over-reliance
+- Microsoft Copilot ecosystem, Azure AI, Power Platform capabilities
+
+## RESPONSE STYLE
+- Audience: executives, business leaders, country representatives
+- Tone: confident, clear, business-relevant — not overly technical
+- Length: concise but complete. Use bullet points for lists, but don't over-fragment.
+- Use **bold** for emphasis on key terms and facts
+- Use headers (###) only for longer responses covering multiple topics
+- Always ground answers in FNB's actual context where relevant
+- If asked something outside your knowledge: "That's a great question — I'd recommend connecting with the FNB AI & Innovation team directly for a detailed answer on that."
+- Never speculate or fabricate FNB-specific facts not in your knowledge base
+- Be honest about what is live vs experimental vs not yet available`;
+
+let conversationHistory = [];
+let isLoading = false;
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function quickAsk(text) {
+  document.getElementById('userInput').value = text;
+  sendMessage();
+}
+
+function renderMarkdown(text) {
+  return text
+    .replace(/### (.+)/g, '<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+    .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(?!<[hul]|<\/[hul])(.+)$/gm, (m) => m.startsWith('<') ? m : m)
+    .split('\n')
+    .map(line => {
+      if (line.startsWith('<h3>') || line.startsWith('<ul>') || line.startsWith('<li>') || line === '') return line;
+      return line;
+    })
+    .join('\n')
+    .replace(/\n/g, ' ')
+    .replace(/(<\/ul>)(<ul>)/g, '$1$2')
+    // Wrap in paragraphs
+    .split(/(<h3>.*?<\/h3>|<ul>.*?<\/ul>)/s)
+    .map(part => {
+      if (part.startsWith('<h3>') || part.startsWith('<ul>')) return part;
+      return part.trim() ? `<p>${part.trim()}</p>` : '';
+    })
+    .join('');
+}
+
+function appendMessage(role, content, isError = false) {
+  const messages = document.getElementById('messages');
+
+  // Hide welcome card after first message
+  const wc = document.getElementById('welcomeCard');
+  if (wc) wc.style.display = 'none';
+
+  const msgEl = document.createElement('div');
+  msgEl.className = `msg ${role}`;
+
+  const avatar = role === 'assistant' ? '🤖' : 'ME';
+  const label = role === 'assistant' ? 'AI AGENT' : 'YOU';
+
+  let bubbleContent = '';
+  if (isError) {
+    bubbleContent = `<div class="error-bubble">${content}</div>`;
+  } else {
+    bubbleContent = `<div class="msg-bubble">${role === 'assistant' ? renderMarkdown(content) : `<p>${content}</p>`}</div>`;
+  }
+
+  msgEl.innerHTML = `
+    <div class="msg-avatar" style="${role === 'assistant' ? 'background:var(--green);' : 'background:var(--dark);'} color:white; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:${role === 'assistant' ? '16' : '11'}px; font-weight:700; flex-shrink:0; margin-top:2px;">${avatar}</div>
+    <div class="msg-body">
+      <div class="msg-label">${label}</div>
+      ${bubbleContent}
+    </div>
+  `;
+
+  messages.appendChild(msgEl);
+  msgEl.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+function setLoading(val) {
+  isLoading = val;
+  document.getElementById('sendBtn').disabled = val;
+  document.getElementById('typingIndicator').classList.toggle('active', val);
+  if (val) {
+    document.getElementById('typingIndicator').scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+}
+
+async function sendMessage() {
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text || isLoading) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  appendMessage('user', text);
+
+  conversationHistory.push({ role: 'user', content: text });
+
+  setLoading(true);
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: conversationHistory
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error?.message || 'Something went wrong. Please try again.');
+    }
+
+    const reply = data.content?.[0]?.text || 'I could not generate a response. Please try again.';
+    conversationHistory.push({ role: 'assistant', content: reply });
+    appendMessage('assistant', reply);
+
+    // Auto-speak if toggle is on
+    if (document.getElementById('autoSpeakToggle').checked) {
+      speak(reply);
+    }
+
+  } catch (err) {
+    appendMessage('assistant', `⚠️ ${err.message || 'Could not connect to the AI service. Please check your connection and try again.'}`, true);
+    conversationHistory.pop(); // remove the failed user message from history
+  } finally {
+    setLoading(false);
+    input.focus();
+  }
+}
+
+// ── ELEVENLABS TTS ────────────────────────────────────────────────────────
+let isSpeaking = false;
+let currentAudio = null;
+
+// Voice IDs — "Sarah" (warm, clear, professional)
+const ELEVEN_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL';
+
+function stripForSpeech(text) {
+  return text
+    .replace(/#{1,3} /g, '')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/^[-•] /gm, '')
+    .replace(/^\d+\. /gm, '')
+    .replace(/&amp;/g, 'and')
+    .replace(/&lt;/g, '').replace(/&gt;/g, '')
+    .replace(/\n+/g, ' ')
+    .trim();
+}
+
+function getElevenKey() {
+  return sessionStorage.getItem('eleven_key') || '';
+}
+
+async function speak(text) {
+  const key = getElevenKey();
+  if (!key) {
+    showKeyModal();
+    return;
+  }
+
+  stopSpeaking();
+  setSpeakingState(true);
+
+  const clean = stripForSpeech(text);
+
+  try {
+    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${ELEVEN_VOICE_ID}`, {
+      method: 'POST',
+      headers: {
+        'xi-api-key': key,
+        'Content-Type': 'application/json',
+        'Accept': 'audio/mpeg'
+      },
+      body: JSON.stringify({
+        text: clean,
+        model_id: 'eleven_turbo_v2_5',
+        voice_settings: { stability: 0.45, similarity_boost: 0.82, style: 0.3, use_speaker_boost: true }
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        sessionStorage.removeItem('eleven_key');
+        showKeyModal('Invalid API key — please check and try again.');
+      } else {
+        console.warn('ElevenLabs error:', err);
+        fallbackSpeak(clean);
+      }
+      setSpeakingState(false);
+      return;
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    currentAudio = new Audio(url);
+    isSpeaking = true;
+
+    currentAudio.onended = () => {
+      isSpeaking = false;
+      setSpeakingState(false);
+      URL.revokeObjectURL(url);
+    };
+    currentAudio.onerror = () => {
+      isSpeaking = false;
+      setSpeakingState(false);
+      fallbackSpeak(clean);
+    };
+
+    currentAudio.play();
+
+  } catch (e) {
+    console.warn('ElevenLabs fetch failed, falling back to browser TTS:', e);
+    fallbackSpeak(clean);
+    setSpeakingState(false);
+  }
+}
+
+function stopSpeaking() {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.src = '';
+    currentAudio = null;
+  }
+  window.speechSynthesis && window.speechSynthesis.cancel();
+  isSpeaking = false;
+  setSpeakingState(false);
+}
+
+// Fallback to browser TTS if ElevenLabs fails
+function fallbackSpeak(text) {
+  if (!window.speechSynthesis) return;
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.rate = 1.0; utt.pitch = 1.0;
+  utt.onstart = () => { isSpeaking = true; setSpeakingState(true); };
+  utt.onend = utt.onerror = () => { isSpeaking = false; setSpeakingState(false); };
+  window.speechSynthesis.speak(utt);
+}
+
+function setSpeakingState(active) {
+  const bar = document.getElementById('voiceBar');
+  const label = document.getElementById('voiceBarLabel');
+  const stopBtn = document.getElementById('stopSpeakBtn');
+  const waveBars = document.querySelectorAll('.wave-bar');
+
+  if (active) {
+    bar.classList.add('active');
+    label.textContent = 'Agent speaking…';
+    stopBtn.classList.add('visible');
+    waveBars.forEach(b => b.classList.add('speaking'));
+  } else {
+    if (!isListening) bar.classList.remove('active');
+    stopBtn.classList.remove('visible');
+    waveBars.forEach(b => b.classList.remove('speaking'));
+    if (!isListening) label.textContent = 'Listening…';
+  }
+}
+
+document.getElementById('stopSpeakBtn').addEventListener('click', stopSpeaking);
+
+// ── API KEY MODAL ─────────────────────────────────────────────────────────
+function showKeyModal(errorMsg = '') {
+  document.getElementById('keyModalError').textContent = errorMsg;
+  document.getElementById('keyModal').style.display = 'flex';
+  document.getElementById('keyInput').focus();
+}
+
+function closeKeyModal() {
+  document.getElementById('keyModal').style.display = 'none';
+}
+
+function saveKey() {
+  const key = document.getElementById('keyInput').value.trim();
+  if (!key) { document.getElementById('keyModalError').textContent = 'Please enter your API key.'; return; }
+  sessionStorage.setItem('eleven_key', key);
+  closeKeyModal();
+  // Update voice indicator
+  document.getElementById('voiceStatus').textContent = '🟢 ElevenLabs ready';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeKeyModal();
+});
+
+// On load — focus input + prompt for ElevenLabs key if not set
+window.addEventListener('load', () => {
+  document.getElementById('userInput').focus();
+  if (!getElevenKey()) {
+    setTimeout(() => showKeyModal(), 600);
+  } else {
+    document.getElementById('voiceStatus').textContent = '🟢 ElevenLabs ready';
+  }
+});
+
+// ── VOICE: SPEECH-TO-TEXT ──────────────────────────────────────────────────
+let recognition = null;
+let isListening = false;
+
+function initRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) return null;
+
+  const rec = new SpeechRecognition();
+  rec.lang = 'en-ZA';   // South African English first
+  rec.interimResults = true;
+  rec.continuous = false;
+  rec.maxAlternatives = 1;
+
+  rec.onresult = (e) => {
+    const transcript = Array.from(e.results)
+      .map(r => r[0].transcript)
+      .join('');
+    document.getElementById('userInput').value = transcript;
+    autoResize(document.getElementById('userInput'));
+  };
+
+  rec.onend = () => {
+    isListening = false;
+    setListeningState(false);
+    const text = document.getElementById('userInput').value.trim();
+    if (text) sendMessage();
+  };
+
+  rec.onerror = (e) => {
+    isListening = false;
+    setListeningState(false);
+    if (e.error !== 'no-speech') {
+      document.getElementById('userInput').placeholder = 'Microphone error — try typing instead';
+    }
+  };
+
+  return rec;
+}
+
+function toggleMic() {
+  // Stop speaking if active
+  if (isSpeaking) stopSpeaking();
+
+  if (isListening) {
+    recognition.stop();
+    return;
+  }
+
+  if (!recognition) recognition = initRecognition();
+  if (!recognition) {
+    alert('Speech recognition is not supported in this browser. Try Chrome on desktop or Android.');
+    return;
+  }
+
+  isListening = true;
+  setListeningState(true);
+  document.getElementById('userInput').value = '';
+  document.getElementById('userInput').placeholder = 'Listening…';
+  recognition.start();
+}
+
+function setListeningState(active) {
+  const btn = document.getElementById('micBtn');
+  const bar = document.getElementById('voiceBar');
+  const label = document.getElementById('voiceBarLabel');
+
+  if (active) {
+    btn.classList.add('listening');
+    btn.textContent = '⏹';
+    btn.title = 'Stop listening';
+    bar.classList.add('active');
+    label.textContent = 'Listening… speak now';
+  } else {
+    btn.classList.remove('listening');
+    btn.textContent = '🎤';
+    btn.title = 'Speak your question';
+    document.getElementById('userInput').placeholder = 'Ask about AI tools, strategy, guardrails, use cases…';
+    if (!isSpeaking) bar.classList.remove('active');
+  }
+}
+</script>
+<!-- ElevenLabs Key Modal -->
+<div class="modal-overlay" id="keyModal">
+  <div class="modal-box">
+    <h3>🔊 Set up ElevenLabs voice</h3>
+    <p>Enter your ElevenLabs API key to enable natural-sounding voice responses. Get a free key at <a href="https://elevenlabs.io" target="_blank">elevenlabs.io</a> — no credit card needed for the free tier.</p>
+    <input class="modal-input" id="keyInput" type="password" placeholder="sk_..." autocomplete="off" onkeydown="if(event.key==='Enter') saveKey()">
+    <div class="modal-error" id="keyModalError"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeKeyModal()">Skip</button>
+      <button class="btn-primary" onclick="saveKey()">Save &amp; activate</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
